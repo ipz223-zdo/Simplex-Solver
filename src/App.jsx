@@ -1,35 +1,31 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './styles/App.css'
+import ModelForm from './components/ModelForm';
+
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [modelParams, setModelParams] = useState(null);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const handleModelSubmit = ({ numVariables, numConstraints }) => {
+        setModelParams({ numVariables, numConstraints });
+    };
+
+    return (
+        <div className="container py-5">
+            <h1 className="text-center mb-4">Розв’язувач симплекс-методом</h1>
+
+            {!modelParams ? (
+                <ModelForm onSubmit={handleModelSubmit} />
+            ) : (
+                <div className="alert alert-info text-center">
+                    Введено: <strong>{modelParams.numVariables}</strong> змінних і <strong>{modelParams.numConstraints}</strong> обмежень.
+                    <br />
+                    (Тут буде форма для введення коефіцієнтів)
+                </div>
+            )}
+        </div>
+    );
 }
 
-export default App
+export default App;
+
