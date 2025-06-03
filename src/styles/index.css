@@ -66,3 +66,24 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.pivot-column {
+  background-color: #d4edda; /* світло-зелений */
+}
+
+.pivot-row {
+  background-color: #d4edda; /* світло-зелений */
+}
+
+.pivot-element {
+  background-color: #f8d7da; /* світло-червоний */
+  font-weight: bold;
+  border: 2px solid #721c24;
+}
+
+.final-answer {
+  background-color: #155724; /* темно-зелений */
+  color: white;
+  font-weight: bold;
+}
+
