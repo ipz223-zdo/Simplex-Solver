@@ -1,4 +1,3 @@
-//Форма введення кількості змінних і обмежень
 import React, { useState } from 'react';
 
 const ModelForm = ({ onSubmit }) => {

@@ -3,7 +3,6 @@ import Fraction from 'fraction.js';
 function calculateObjectiveRow(matrix, basis, variableTypes, initialC) {
     const numCols = matrix[0].length;
 
-    // Рядок коефіцієнтів C для базисних змінних
     const cRow = basis.map(baseVar => {
         const idx = variableTypes.indexOf(baseVar);
         return idx !== -1 ? initialC[idx].clone() : new Fraction(0);
@@ -19,7 +18,6 @@ function calculateObjectiveRow(matrix, basis, variableTypes, initialC) {
         zj.push(sum);
     }
 
-    // Обчислюємо F_j = Zj - C_j, але не для останнього стовпця (RHS)
     const F = [];
     for (let j = 0; j < zj.length; j++) {
         const cj = (j < initialC.length && j !== numCols - 1) ? initialC[j] : new Fraction(0);
@@ -29,13 +27,12 @@ function calculateObjectiveRow(matrix, basis, variableTypes, initialC) {
     return { F, cRow };
 }
 
-export function getSimplexSteps(initialMatrix, objectiveRow, basis, variableTypes) {
+export function getSimplexSteps(initialMatrix, objectiveRow, basis, variableTypes, initialC, maximize = true) {
     const steps = [];
     let matrix = initialMatrix.map(row => row.map(val => new Fraction(val)));
-    const initialC = objectiveRow.map(val => new Fraction(val)); // original C
+    initialC = objectiveRow.map(val => new Fraction(val)); // original C
     let currentBasis = [...basis];
 
-    // Перший розрахунок objectiveRow (F) та cRow
     let { F: z, cRow } = calculateObjectiveRow(matrix, currentBasis, variableTypes, initialC);
 
     while (true) {
@@ -44,20 +41,17 @@ export function getSimplexSteps(initialMatrix, objectiveRow, basis, variableType
             objectiveRow: [...z],
             basis: [...currentBasis],
             variableTypes,
-            cRow: [
-                ...initialC,
-                ...Array(z.length - initialC.length).fill(new Fraction(0))
-            ],
+            cRow: Array.from({ length: z.length }, (_, j) =>
+                j < initialC.length ? initialC[j] : new Fraction(0)
+            ),
             initialC: [...initialC],
         });
 
-        // Вибираємо ведучий стовпець (найменший елемент в objectiveRow, крім RHS)
         const minVal = Math.min(...z.slice(0, z.length - 1).map(val => val.valueOf()));
         if (minVal >= 0) break; // Оптимум знайдено
 
         const pivotCol = z.findIndex(val => val.valueOf() === minVal);
 
-        // Вибираємо ведучий рядок за правилом мінімального відношення
         let pivotRow = -1;
         let minRatio = Infinity;
 
@@ -73,24 +67,20 @@ export function getSimplexSteps(initialMatrix, objectiveRow, basis, variableType
             }
         }
 
-        if (pivotRow === -1) break; // Немає допустимого рішення
+        if (pivotRow === -1) break;
 
         const pivotValue = matrix[pivotRow][pivotCol];
 
-        // Нормалізуємо ведучий рядок
         matrix[pivotRow] = matrix[pivotRow].map(val => val.div(pivotValue));
 
-        // Обнуляємо всі інші значення у ведучому стовпці
         for (let i = 0; i < matrix.length; i++) {
             if (i === pivotRow) continue;
             const multiplier = matrix[i][pivotCol];
             matrix[i] = matrix[i].map((val, j) => val.sub(matrix[pivotRow][j].mul(multiplier)));
         }
 
-        // Оновлюємо базис
         currentBasis[pivotRow] = variableTypes[pivotCol];
 
-        // Перераховуємо рядок objectiveRow (F) після оновлення матриці і базису
         ({ F: z, cRow } = calculateObjectiveRow(matrix, currentBasis, variableTypes, initialC));
     }
 

@@ -46,6 +46,7 @@ export function toCanonicalForm({ objective, constraints, maximize }) {
         matrix,
         objectiveRow,
         basis,
-        variableTypes
+        variableTypes,
+        maximize
     };
 }

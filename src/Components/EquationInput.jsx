@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const EquationInput = ({ numVariables, numConstraints, onSubmit }) => {
+const EquationInput = ({ numVariables, numConstraints, onSubmit, showPresetButton }) => {
     const [objective, setObjective] = useState(Array(numVariables).fill(''));
     const [maximize, setMaximize] = useState(true); // true = max, false = min
 
@@ -39,6 +39,15 @@ const EquationInput = ({ numVariables, numConstraints, onSubmit }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         onSubmit({ objective, constraints, maximize });
+    };
+
+    const handlePresetClick = () => {
+        setObjective(['1', '1']);
+        setConstraints([
+            { coefficients: ['2', '1'], sign: '<=', rhs: '1200' },
+            { coefficients: ['2', '3'], sign: '<=', rhs: '2400' }
+        ]);
+        setMaximize(true);
     };
 
     return (
@@ -111,7 +120,14 @@ const EquationInput = ({ numVariables, numConstraints, onSubmit }) => {
                 </div>
             ))}
 
-            <button type="submit" className="btn btn-success mt-3">Знайти розв’язок</button>
+            <div className="d-flex gap-2 mt-3">
+                <button type="submit" className="btn btn-success">Знайти розв’язок</button>
+                {showPresetButton && (
+                    <button type="button" className="btn btn-secondary" onClick={handlePresetClick}>
+                        Задача
+                    </button>
+                )}
+            </div>
         </form>
     );
 };

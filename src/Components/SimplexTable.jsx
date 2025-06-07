@@ -10,7 +10,6 @@ function SimplexTable({ stepData, variableTypes }) {
                 <tr className="table-secondary">
                     <th rowSpan="2">Базис</th>
                     <th rowSpan="2">C</th>
-                    {/* Рядок C */}
                     {variableTypes.map((_, i) => (
                         <th key={i} className="table-light">
                             {initialC[i]?.toFraction?.() || '0'}
@@ -41,7 +40,6 @@ function SimplexTable({ stepData, variableTypes }) {
                         </tr>
                     );
                 })}
-                {/* Рядок F (цільова функція) */}
                 <tr className="table-secondary">
                     <td>F</td>
                     <td></td>

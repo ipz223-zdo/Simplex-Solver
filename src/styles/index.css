@@ -68,21 +68,21 @@ button:focus-visible {
 }
 
 .pivot-column {
-  background-color: #d4edda; /* світло-зелений */
+  background-color: #d4edda;
 }
 
 .pivot-row {
-  background-color: #d4edda; /* світло-зелений */
+  background-color: #d4edda;
 }
 
 .pivot-element {
-  background-color: #f8d7da; /* світло-червоний */
+  background-color: #f8d7da;
   font-weight: bold;
   border: 2px solid #721c24;
 }
 
 .final-answer {
-  background-color: #155724; /* темно-зелений */
+  background-color: #155724;
   color: white;
   font-weight: bold;
 }
