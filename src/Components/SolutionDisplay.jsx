@@ -1,7 +1,7 @@
 import React from 'react';
 import Fraction from 'fraction.js';
 
-export function SolutionDisplay({ steps, variableTypes, maximize }) {
+export function SolutionDisplay({ steps, variables, maximize }) {
     if (!steps.length) return null;
 
     const lastStep = steps[steps.length - 1];
@@ -14,9 +14,11 @@ export function SolutionDisplay({ steps, variableTypes, maximize }) {
         optimalF = optimalF.neg();
     }
 
-    const xVars = variableTypes.filter(v => /^x\d+$/.test(v));
-    const xValues = {};
+    const xVars = (variables ?? [])
+        .map(v => v.name)
+        .filter(name => /^x\d+$/.test(name));
 
+    const xValues = {};
     xVars.forEach(v => xValues[v] = new Fraction(0));
 
     for (let i = 0; i < basis.length; i++) {
@@ -37,6 +39,7 @@ export function SolutionDisplay({ steps, variableTypes, maximize }) {
                     ? `F(${xVars.join(', ')}) = ${fractionsToStr(optimalF)}. `
                     : `F(${xVars.join(', ')}) = -F'(${xVars.join(', ')}) = ${fractionsToStr(optimalF)}. `
                 }
+                {xVars.length > 0 && ' '}
                 {xVars.map(v => `${v} = ${fractionsToStr(xValues[v])}`).join(', ')}
             </p>
         </div>

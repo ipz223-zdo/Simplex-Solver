@@ -1,11 +1,21 @@
 import Fraction from 'fraction.js';
 
-function calculateObjectiveRow(matrix, basis, variableTypes, initialC) {
+// функція для пошуку індексу змінної за ім'ям
+function findVariableIndex(variables, name) {
+    return variables.findIndex(v => v.name === name);
+}
+
+function calculateObjectiveRow(matrix, basis, variables, initialC) {
     const numCols = matrix[0].length;
 
-    const cRow = basis.map(baseVar => {
-        const idx = variableTypes.indexOf(baseVar);
-        return idx !== -1 ? initialC[idx].clone() : new Fraction(0);
+    // cRow: коефіцієнти для базисних змінних
+    const cRow = basis.map(baseVarName => {
+        const idx = variables.findIndex(v => v.name === baseVarName);
+        if (idx === -1 || !initialC[idx]) {
+            return new Fraction(0);
+        }
+        const val = initialC[idx];
+        return val ? val.clone() : new Fraction(0);
     });
 
     const zj = [];
@@ -27,28 +37,77 @@ function calculateObjectiveRow(matrix, basis, variableTypes, initialC) {
     return { F, cRow };
 }
 
-export function getSimplexSteps(initialMatrix, objectiveRow, basis, variableTypes, initialC, maximize = true) {
+export function getSimplexSteps(initialMatrix, objectiveRow, basis, variablesInput, originalObjective) {
     const steps = [];
     let matrix = initialMatrix.map(row => row.map(val => new Fraction(val)));
-    initialC = objectiveRow.map(val => new Fraction(val)); // original C
     let currentBasis = [...basis];
+    let variables = variablesInput.map(v => ({ ...v }));
 
-    let { F: z, cRow } = calculateObjectiveRow(matrix, currentBasis, variableTypes, initialC);
+    const artificialIndexes = variables
+        .map((v, i) => v.type === 'artificial' ? i : -1)
+        .filter(i => i !== -1);
+
+    const inPhaseOne = artificialIndexes.length > 0;
+    let phase = inPhaseOne ? 1 : 2;
+
+    const totalVars = variables.length;
+
+    // === Фаза 1: W = сума штучних змінних ===
+    const M = new Fraction(1000000);
+    let coeffRow = Array(totalVars).fill(new Fraction(0));
+    if (phase === 1) {
+        for (const idx of artificialIndexes) {
+            coeffRow[idx] = M.neg();
+        }
+    } else {
+        coeffRow = [...originalObjective];
+    }
+
+    let { F: z, cRow } = calculateObjectiveRow(matrix, currentBasis, variables, coeffRow);
 
     while (true) {
         steps.push({
+            phase,
             matrix: matrix.map(row => [...row]),
             objectiveRow: [...z],
             basis: [...currentBasis],
-            variableTypes,
-            cRow: Array.from({ length: z.length }, (_, j) =>
-                j < initialC.length ? initialC[j] : new Fraction(0)
-            ),
-            initialC: [...initialC],
+            variables: variables.map(v => ({ ...v })),
+            cRow: [...coeffRow]
         });
 
         const minVal = Math.min(...z.slice(0, z.length - 1).map(val => val.valueOf()));
-        if (minVal >= 0) break; // Оптимум знайдено
+        if (minVal >= 0) {
+            if (phase === 1) {
+                const hasArtificialInBasis = currentBasis.some(
+                    name => {
+                        const v = variables.find(v => v.name === name);
+                        return v?.type === 'artificial';
+                    }
+                );
+
+                if (hasArtificialInBasis) {
+                    break; // Несумісна модель
+                }
+
+
+                // Переходимо до фази 2
+                phase = 2;
+
+                // Видаляємо штучні змінні
+                const phase2Variables = variables.filter(v => v.type !== 'artificial');
+                const keptIndexes = phase2Variables.map(v => findVariableIndex(variables, v.name));
+
+                matrix = matrix.map(row => keptIndexes.map(i => row[i]).concat([row[row.length - 1]]));
+                coeffRow = [...originalObjective];
+                currentBasis = currentBasis.filter(name => phase2Variables.some(v => v.name === name));
+                variables = phase2Variables.map(v => ({ ...v }));
+
+                ({ F: z, cRow } = calculateObjectiveRow(matrix, currentBasis, variables, coeffRow));
+                continue;
+            } else {
+                break; // Завершення фази 2
+            }
+        }
 
         const pivotCol = z.findIndex(val => val.valueOf() === minVal);
 
@@ -67,21 +126,26 @@ export function getSimplexSteps(initialMatrix, objectiveRow, basis, variableType
             }
         }
 
-        if (pivotRow === -1) break;
+
+        if (pivotRow === -1) {
+            break;
+        }
 
         const pivotValue = matrix[pivotRow][pivotCol];
-
         matrix[pivotRow] = matrix[pivotRow].map(val => val.div(pivotValue));
+
 
         for (let i = 0; i < matrix.length; i++) {
             if (i === pivotRow) continue;
             const multiplier = matrix[i][pivotCol];
-            matrix[i] = matrix[i].map((val, j) => val.sub(matrix[pivotRow][j].mul(multiplier)));
+            matrix[i] = matrix[i].map((val, j) => {
+                return val.sub(matrix[pivotRow][j].mul(multiplier));
+            });
         }
 
-        currentBasis[pivotRow] = variableTypes[pivotCol];
+        currentBasis[pivotRow] = variables[pivotCol].name;
 
-        ({ F: z, cRow } = calculateObjectiveRow(matrix, currentBasis, variableTypes, initialC));
+        ({ F: z, cRow } = calculateObjectiveRow(matrix, currentBasis, variables, coeffRow));
     }
 
     return steps;

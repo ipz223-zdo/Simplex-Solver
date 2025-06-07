@@ -3,22 +3,22 @@ import './styles/App.css'
 import ModelForm from './components/ModelForm';
 import EquationInput from './components/EquationInput';
 import { toCanonicalForm } from './utils/toCanonicalForm.js';
-import {getSimplexSteps} from "./utils/simplexSteps.jsx";
+import { getSimplexSteps } from "./utils/simplexSteps.jsx";
 import SimplexSteps from "./Components/SimplexSteps.jsx";
-import {CanonicalFormDisplay} from './Components/CanonicalFormDisplay';
-import {SolutionDisplay} from './Components/SolutionDisplay';
+import { CanonicalFormDisplay } from './Components/CanonicalFormDisplay';
+import { SolutionDisplay } from './Components/SolutionDisplay';
 
 function App() {
     const [modelParams, setModelParams] = useState(null);
     const [steps, setSteps] = useState(null);
-    const [variableTypes, setVariableTypes] = useState(null);
+    const [variables, setVariables] = useState(null);
     const [canonicalData, setCanonicalData] = useState(null);
     const [equationKey, setEquationKey] = useState(0);
 
     const handleModelSubmit = ({ numVariables, numConstraints }) => {
         setModelParams({ numVariables, numConstraints });
         setSteps(null);
-        setVariableTypes(null);
+        setVariables(null);
         setCanonicalData(null);
         setEquationKey(prev => prev + 1);
     };
@@ -29,10 +29,10 @@ function App() {
             simplexData.matrix,
             simplexData.objectiveRow,
             simplexData.basis,
-            simplexData.variableTypes,
+            simplexData.variables,
             simplexData.originalObjective
         );
-        setVariableTypes(simplexData.variableTypes);
+        setVariables(simplexData.variables);
         setSteps(computedSteps);
         setCanonicalData(simplexData);
     };
@@ -59,16 +59,15 @@ function App() {
                 <CanonicalFormDisplay
                     matrix={canonicalData.matrix}
                     objectiveRow={canonicalData.objectiveRow}
-                    variableTypes={canonicalData.variableTypes}
+                    variables={canonicalData.variables}
                     maximize={canonicalData.maximize}
                 />
             )}
 
-            {steps && <SimplexSteps steps={steps} variableTypes={variableTypes} />}
-            {steps && <SolutionDisplay steps={steps} variableTypes={variableTypes} maximize={canonicalData.maximize} />}
+            {steps && <SimplexSteps steps={steps} variables={variables} />}
+            {steps && <SolutionDisplay steps={steps} variables={variables} maximize={canonicalData.maximize} />}
         </div>
     );
 }
 
 export default App;
-

@@ -10,7 +10,7 @@ const SimplexSteps = ({ steps, variableTypes }) => {
                     <h5>Крок {index + 1}</h5>
                     <SimplexTable
                         stepData={step}
-                        variableTypes={step.variableTypes}
+                        variables={step.variables}
                     />
                 </div>
             ))}
