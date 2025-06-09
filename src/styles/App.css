@@ -40,3 +40,9 @@
 .read-the-docs {
   color: #888;
 }
+
+.warn {
+  background-color: #fff3cd !important; /* світло-жовтий */
+  font-weight: bold;
+  color: white;
+}

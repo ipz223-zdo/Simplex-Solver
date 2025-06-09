@@ -5,41 +5,27 @@ const M = 1000000; // Велике число M
 function formatCell(val) {
     if (val === null || val === undefined) return '0';
 
-    // Отримаємо числове значення val
-    let num;
-    if (typeof val.valueOf === 'function') {
-        num = val.valueOf();
-    } else {
-        num = val;
-    }
-
-    // Якщо num дорівнює 0
+    let num = typeof val.valueOf === 'function' ? val.valueOf() : val;
     if (num === 0) return '0';
 
-    // Перевірка на кратність M (приблизно)
-    // Тут допустимо невелике похиблення через дійсні числа
     const epsilon = 1e-10;
     const ratio = num / M;
 
     if (Math.abs(ratio - Math.round(ratio)) < epsilon) {
-        // Кратне M з цілим коефіцієнтом
         const coeff = Math.round(ratio);
         if (coeff === 1) return 'M';
         if (coeff === -1) return '-M';
         return `${coeff}M`;
     }
 
-    // Якщо коефіцієнт не цілий, але близький, показати з дробом (2.5M)
     if (Math.abs(ratio) > 1) {
         return ratio.toFixed(2) + 'M';
     }
 
-    // Якщо val — об'єкт з методом toFraction, виводимо його
     if (typeof val.toFraction === 'function') {
         return val.toFraction(true);
     }
 
-    // Інакше просто рядок числа
     return num.toString();
 }
 
@@ -53,35 +39,67 @@ function hasNoSolution(matrix, objectiveRow) {
                     break;
                 }
             }
-            if (!positiveFound) {
-                return true;
-            }
+            if (!positiveFound) return true;
         }
     }
     return false;
 }
 
-function SimplexTable({ stepData, variables }) {
-    if (!stepData) {
-        return <div>Дані відсутні</div>;
+function findPivot(matrix, objectiveRow) {
+    const numCols = objectiveRow.length - 1;
+    let pivotCol = -1;
+    let min = 0;
+
+    // Знаходимо стовпець з найменшим від’ємним значенням у F
+    for (let j = 0; j < numCols; j++) {
+        const val = objectiveRow[j].valueOf();
+        if (val < min) {
+            min = val;
+            pivotCol = j;
+        }
     }
-    if (!variables) {
-        return <div>Змінні відсутні</div>;
+
+    if (pivotCol === -1) return { row: -1, col: -1 };
+
+    let minRatio = Infinity;
+    let pivotRow = -1;
+
+    for (let i = 0; i < matrix.length; i++) {
+        const coeff = matrix[i][pivotCol].valueOf();
+        const b = matrix[i][matrix[i].length - 1].valueOf();
+
+        if (coeff > 0) {
+            const ratio = b / coeff;
+            if (ratio < minRatio) {
+                minRatio = ratio;
+                pivotRow = i;
+            }
+        }
     }
+
+    return { row: pivotRow, col: pivotCol };
+}
+
+function SimplexTable({ stepData, variables, isLastStep = false}) {
+    if (!stepData) return <div>Дані відсутні</div>;
+    if (!variables) return <div>Змінні відсутні</div>;
 
     const { matrix, basis, objectiveRow, cRow: initialC } = stepData;
-
-    if (!matrix || !basis || !objectiveRow) {
-        return <div>Некоректні дані кроку</div>;
-    }
+    if (!matrix || !basis || !objectiveRow) return <div>Некоректні дані кроку</div>;
 
     const noSolution = hasNoSolution(matrix, objectiveRow);
-
+    const hasArtificialVariable = basis.some(name => name.startsWith('a'));
+    const pivot = findPivot(matrix, objectiveRow);
     return (
         <div>
             {noSolution && (
                 <div className="alert alert-danger mb-3">
-                    Розв’язок відсутній
+                    Розв’язок необмежений (немає доданих елементів у напрямному стовпці). <br/> Цільова функція необмежена на множині допустимих рішень (прямує до +/-∞)».
+                </div>
+            )}
+            {isLastStep && hasArtificialVariable && (
+                <div className="alert alert-warning mb-3">
+                    У базисі присутня штучна змінна — задача не має допустимого розв’язку.
                 </div>
             )}
             <div className="table-responsive">
@@ -116,9 +134,14 @@ function SimplexTable({ stepData, variables }) {
                             <tr key={i}>
                                 <td>{baseVar}</td>
                                 <td>{formatCell(baseC)}</td>
-                                {row.slice(0, -1).map((cell, j) => (
-                                    <td key={j}>{formatCell(cell)}</td>
-                                ))}
+                                {row.slice(0, -1).map((cell, j) => {
+                                    const isPivot = i === pivot.row && j === pivot.col;
+                                    return (
+                                        <td key={j} className={isPivot ? 'bg-success text-light' : ''}>
+                                            {formatCell(cell)}
+                                        </td>
+                                    );
+                                })}
                                 <td>{formatCell(row[row.length - 1])}</td>
                             </tr>
                         );

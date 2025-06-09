@@ -1,7 +1,7 @@
 import React from 'react';
 import SimplexTable from './SimplexTable';
 
-const SimplexSteps = ({ steps, variableTypes }) => {
+const SimplexSteps = ({ steps, variables}) => {
     return (
         <div className="mt-5">
             <h2>Кроки симплекс методу</h2>
@@ -11,6 +11,7 @@ const SimplexSteps = ({ steps, variableTypes }) => {
                     <SimplexTable
                         stepData={step}
                         variables={step.variables}
+                        isLastStep={index === steps.length - 1}
                     />
                 </div>
             ))}

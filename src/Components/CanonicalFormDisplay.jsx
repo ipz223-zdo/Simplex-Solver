@@ -8,7 +8,7 @@ export function CanonicalFormDisplay({ matrix, objectiveRow, variables, maximize
         return frac.toFraction(true);
     };
 
-    // Будуємо вираз: всі змінні з коефіцієнтами, навіть якщо 0
+    // Будуємо вираз: всі змінні з коефіцієнтами
     const buildExpressionWithZeros = (coeffs, vars) =>
         coeffs
             .map((c, i) => {

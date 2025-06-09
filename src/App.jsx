@@ -3,7 +3,7 @@ import './styles/App.css'
 import ModelForm from './components/ModelForm';
 import EquationInput from './components/EquationInput';
 import { toCanonicalForm } from './utils/toCanonicalForm.js';
-import { getSimplexSteps } from "./utils/simplexSteps.jsx";
+import { getSimplexSteps } from "./utils/simplexSteps.js";
 import SimplexSteps from "./Components/SimplexSteps.jsx";
 import { CanonicalFormDisplay } from './Components/CanonicalFormDisplay';
 import { SolutionDisplay } from './Components/SolutionDisplay';

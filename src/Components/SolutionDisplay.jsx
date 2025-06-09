@@ -33,7 +33,6 @@ export function SolutionDisplay({ steps, variables, maximize }) {
 
     return (
         <div className="mt-4">
-            <h4>Відповідь</h4>
             <p>
                 {maximize
                     ? `F(${xVars.join(', ')}) = ${fractionsToStr(optimalF)}. `

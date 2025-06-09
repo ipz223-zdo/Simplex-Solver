@@ -69,7 +69,7 @@ export function toCanonicalForm({ objective, constraints, maximize }) {
             const surplusIdx = numVariables + totalSlack + surplusIndex;
             row[surplusIdx] = new Fraction(1);
             variables.push({
-                name: `s${totalSlack + surplusIndex + 1}`, // правильне індексування
+                name: `s${totalSlack + surplusIndex + 1}`,
                 type: 'surplus',
                 active: true,
             });
